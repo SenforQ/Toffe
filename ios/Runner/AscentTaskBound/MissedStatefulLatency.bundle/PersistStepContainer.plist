@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>activityParamPosition</key>
+	<string>sineContextContrast</string>
+	<key>characterUntilFunction</key>
+	<string>metadataObserverInterval</string>
+	<key>cubeWorkShape</key>
+	<string>cursorCycleSpeed</string>
+	<key>logarithmParameterOffset</key>
+	<string>presenterInsideMode</string>
+	<key>rowValueSpeed</key>
+	<string>activityStateContrast</string>
+	<key>rowVisitorOrientation</key>
+	<string>multiCallbackAppearance</string>
+	<key>storageStyleVisible</key>
+	<string>sessionKindDelay</string>
+</dict>
+</plist>
