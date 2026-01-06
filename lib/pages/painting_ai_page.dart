@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
+import '../services/coin_service.dart';
+import 'wallet_detail_page.dart';
 
 class PaintingAiPage extends StatefulWidget {
   final String? initialPrompt;
@@ -58,7 +60,7 @@ class _PaintingAiPageState extends State<PaintingAiPage> {
     if (widget.initialPrompt != null && widget.initialPrompt!.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _promptController.text = widget.initialPrompt!;
-        _generateImage();
+        // Don't auto-generate, let user confirm first
       });
     }
   }
@@ -90,6 +92,14 @@ class _PaintingAiPageState extends State<PaintingAiPage> {
     final prompt = _promptController.text.trim();
     if (prompt.isEmpty || _isLoading) return;
 
+    // Determine coin cost based on whether it's customized or from home page
+    final isCustomized = widget.initialPrompt != null && widget.initialPrompt!.isNotEmpty;
+    final coinCost = isCustomized ? 25 : 18;
+
+    // Check coins and show confirmation dialog
+    final shouldProceed = await _checkCoinsAndConfirm(coinCost);
+    if (!shouldProceed) return;
+
     setState(() {
       _isLoading = true;
       _generatedImageUrl = null;
@@ -98,6 +108,16 @@ class _PaintingAiPageState extends State<PaintingAiPage> {
     });
 
     try {
+      // Deduct coins before generating
+      final success = await CoinService.deductCoins(coinCost);
+      if (!success) {
+        setState(() {
+          _errorMessage = 'Insufficient coins. Please purchase more coins.';
+          _isLoading = false;
+        });
+        return;
+      }
+
       final response = await _callZhipuAIImageGeneration(prompt);
       setState(() {
         _generatedImageUrl = response;
@@ -105,6 +125,8 @@ class _PaintingAiPageState extends State<PaintingAiPage> {
       });
       _promptController.clear();
     } catch (e) {
+      // If generation fails, refund the coins
+      await CoinService.addCoins(coinCost);
       setState(() {
         _errorMessage = 'Failed to generate image. Please try again.';
         _isLoading = false;
@@ -115,6 +137,14 @@ class _PaintingAiPageState extends State<PaintingAiPage> {
   Future<void> _regenerateImage() async {
     if (_lastPrompt == null || _lastPrompt!.isEmpty || _isLoading) return;
 
+    // Determine coin cost based on whether it's customized or from home page
+    final isCustomized = widget.initialPrompt != null && widget.initialPrompt!.isNotEmpty;
+    final coinCost = isCustomized ? 25 : 18;
+
+    // Check coins and show confirmation dialog
+    final shouldProceed = await _checkCoinsAndConfirm(coinCost);
+    if (!shouldProceed) return;
+
     setState(() {
       _isLoading = true;
       _generatedImageUrl = null;
@@ -122,17 +152,184 @@ class _PaintingAiPageState extends State<PaintingAiPage> {
     });
 
     try {
+      // Deduct coins before generating
+      final success = await CoinService.deductCoins(coinCost);
+      if (!success) {
+        setState(() {
+          _errorMessage = 'Insufficient coins. Please purchase more coins.';
+          _isLoading = false;
+        });
+        return;
+      }
+
       final response = await _callZhipuAIImageGeneration(_lastPrompt!);
       setState(() {
         _generatedImageUrl = response;
         _isLoading = false;
       });
     } catch (e) {
+      // If generation fails, refund the coins
+      await CoinService.addCoins(coinCost);
       setState(() {
         _errorMessage = 'Failed to regenerate image. Please try again.';
         _isLoading = false;
       });
     }
+  }
+
+  Future<bool> _checkCoinsAndConfirm(int coinCost) async {
+    final currentCoins = await CoinService.getCurrentCoins();
+    
+    if (currentCoins < coinCost) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.asset(
+                    'assets/applogo.webp',
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Insufficient Coins',
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            content: Text(
+              'You need $coinCost coins to generate an image, but you only have $currentCoins coins. Please purchase more coins.',
+              style: const TextStyle(
+                color: Colors.black87,
+                fontSize: 16,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: Colors.black54,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Navigate to wallet page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const WalletDetailPage(),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFDC05),
+                  foregroundColor: Colors.black87,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                child: const Text(
+                  'Purchase Coins',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+      return false;
+    }
+
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.asset(
+                'assets/applogo.webp',
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Confirm Generation',
+              style: TextStyle(
+                color: Colors.black87,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'This will cost $coinCost coins. You currently have $currentCoins coins. Do you want to proceed?',
+          style: const TextStyle(
+            color: Colors.black87,
+            fontSize: 16,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(
+                color: Colors.black54,
+                fontSize: 16,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFFDC05),
+              foregroundColor: Colors.black87,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+            child: const Text(
+              'Confirm',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return confirmed ?? false;
   }
 
   Future<void> _saveImage() async {

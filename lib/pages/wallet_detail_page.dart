@@ -23,15 +23,15 @@ class CoinProduct {
 }
 
 const List<CoinProduct> kCoinProducts = [
-  CoinProduct(productId: 'Snugg', coins: 32, price: 0.99, priceText: '\$0.99'),
-  CoinProduct(productId: 'Snugg1', coins: 60, price: 1.99, priceText: '\$1.99'),
-  CoinProduct(productId: 'Snugg2', coins: 96, price: 2.99, priceText: '\$2.99'),
-  CoinProduct(productId: 'Snugg4', coins: 155, price: 4.99, priceText: '\$4.99'),
-  CoinProduct(productId: 'Snugg5', coins: 189, price: 5.99, priceText: '\$5.99'),
-  CoinProduct(productId: 'Snugg9', coins: 359, price: 9.99, priceText: '\$9.99'),
-  CoinProduct(productId: 'Snugg19', coins: 729, price: 19.99, priceText: '\$19.99'),
-  CoinProduct(productId: 'Snugg49', coins: 1869, price: 49.99, priceText: '\$49.99'),
-  CoinProduct(productId: 'Snugg99', coins: 3799, price: 99.99, priceText: '\$99.99'),
+  CoinProduct(productId: 'Toffe', coins: 32, price: 0.99, priceText: '\$0.99'),
+  CoinProduct(productId: 'Toffe1', coins: 60, price: 1.99, priceText: '\$1.99'),
+  CoinProduct(productId: 'Toffe2', coins: 96, price: 2.99, priceText: '\$2.99'),
+  CoinProduct(productId: 'Toffe4', coins: 155, price: 4.99, priceText: '\$4.99'),
+  CoinProduct(productId: 'Toffe5', coins: 189, price: 5.99, priceText: '\$5.99'),
+  CoinProduct(productId: 'Toffe9', coins: 359, price: 9.99, priceText: '\$9.99'),
+  CoinProduct(productId: 'Toffe19', coins: 729, price: 19.99, priceText: '\$19.99'),
+  CoinProduct(productId: 'Toffe49', coins: 1869, price: 49.99, priceText: '\$49.99'),
+  CoinProduct(productId: 'Toffe99', coins: 3799, price: 99.99, priceText: '\$99.99'),
 ];
 
 class WalletDetailPage extends StatefulWidget {
@@ -380,9 +380,10 @@ class _WalletDetailPageState extends State<WalletDetailPage> {
                     children: [
                       const SizedBox(height: 20),
                       Container(
+                        width: screenSize.width - 30,
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 36,
-                          vertical: 20,
+                          horizontal: 24,
+                          vertical: 18,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.9),
@@ -399,28 +400,43 @@ class _WalletDetailPageState extends State<WalletDetailPage> {
                             ),
                           ],
                         ),
-                        child: Text(
-                          _coinsFormat.format(_currentCoins),
-                          style: const TextStyle(
-                            color: Colors.black87,
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'My Coins:',
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                color: Colors.black87,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _coinsFormat.format(_currentCoins),
+                              textAlign: TextAlign.left,
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 32),
-                      GridView.builder(
+                      ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 0.85,
-                        ),
                         itemCount: kCoinProducts.length,
                         itemBuilder: (context, index) {
-                          return _buildProductCard(context, index);
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _buildProductCard(context, index),
+                          );
                         },
                       ),
                     ],
@@ -475,10 +491,8 @@ class _WalletDetailPageState extends State<WalletDetailPage> {
             ),
           ],
         ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: Row(
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(30),
@@ -489,17 +503,23 @@ class _WalletDetailPageState extends State<WalletDetailPage> {
                 fit: BoxFit.cover,
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              '${product.coins} Coins',
-              style: const TextStyle(
-                color: Colors.black87,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${product.coins} Coins',
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
-              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
@@ -656,11 +676,11 @@ class _WalletDetailPageState extends State<WalletDetailPage> {
             _CoinRule(
                 number: '1',
                 text:
-                    'Using Tattoo Daily Care costs 10 Coins per use.'),
+                    'Using Transform your inspirational words into images on the home page costs 18 coins per use.'),
             SizedBox(height: 16),
             _CoinRule(
                 number: '2',
-                text: 'Using Tattoo Creativity costs 30 Coins per use.'),
+                text: 'Using customized Tattoo image generation costs 25 coins per use.'),
             SizedBox(height: 16),
             _CoinRule(
                 number: '3', text: 'Coins are obtained via in-app purchases.'),

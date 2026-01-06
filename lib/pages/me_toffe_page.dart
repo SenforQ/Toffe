@@ -7,6 +7,7 @@ import 'user_agreement_page.dart';
 import 'about_us_page.dart';
 import 'toffe_editor_page.dart';
 import 'rob_chat_page.dart';
+import 'wallet_detail_page.dart';
 
 class MeToffePage extends StatefulWidget {
   const MeToffePage({super.key});
@@ -251,6 +252,19 @@ class _MeToffePageState extends State<MeToffePage> {
     return SingleChildScrollView(
       child: Column(
         children: [
+          _buildListItem(
+            title: 'Wallet',
+            iconPath: 'assets/wallet_green_icon.webp',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const WalletDetailPage(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
           _buildListItem(
             title: 'Privacy Policy',
             iconPath: 'assets/icon_me_privacy_policy.webp',
